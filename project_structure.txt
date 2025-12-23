@@ -1,0 +1,416 @@
+tasks:
+- message: Example task 1
+project_structure:
+- go.mod
+- Makefile
+- go.sum
+- internal/domain/user.go
+- internal/config/config.go
+- internal/delivery/grpc/server.go
+- internal/delivery/grpc/pb/auth.pb.go
+- internal/delivery/grpc/pb/auth_grpc.pb.go
+- internal/delivery/http/server.go
+- internal/delivery/http/handler.go
+- internal/usecase/auth_usecase.go
+- internal/pkg/jwt/manager.go
+- internal/pkg/hash/password.go
+- internal/repository/postgres/user_repo.go
+- cmd/auth/main.go
+files:
+- name: go.mod
+  content: "module github.com/Kovalyovv/auth-service\n\ngo 1.23\n\nrequire (\n\tgithub.com/gin-gonic/gin\
+    \ v1.10.0\n\tgithub.com/golang-jwt/jwt/v5 v5.2.1\n\tgithub.com/jackc/pgx/v5 v5.7.1\n\
+    \tgithub.com/joho/godotenv v1.5.1\n\tgolang.org/x/crypto v0.27.0\n\tgoogle.golang.org/grpc\
+    \ v1.67.1\n\tgoogle.golang.org/protobuf v1.34.2\n)\n\nrequire (\n\tgithub.com/bytedance/sonic\
+    \ v1.11.6 // indirect\n\tgithub.com/bytedance/sonic/loader v0.1.1 // indirect\n\
+    \tgithub.com/cloudwego/base64x v0.1.4 // indirect\n\tgithub.com/cloudwego/iasm\
+    \ v0.2.0 // indirect\n\tgithub.com/gabriel-vasile/mimetype v1.4.3 // indirect\n\
+    \tgithub.com/gin-contrib/sse v0.1.0 // indirect\n\tgithub.com/go-playground/locales\
+    \ v0.14.1 // indirect\n\tgithub.com/go-playground/universal-translator v0.18.1\
+    \ // indirect\n\tgithub.com/go-playground/validator/v10 v10.20.0 // indirect\n\
+    \tgithub.com/goccy/go-json v0.10.2 // indirect\n\tgithub.com/jackc/pgpassfile\
+    \ v1.0.0 // indirect\n\tgithub.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761\
+    \ // indirect\n\tgithub.com/jackc/puddle/v2 v2.2.2 // indirect\n\tgithub.com/json-iterator/go\
+    \ v1.1.12 // indirect\n\tgithub.com/klauspost/cpuid/v2 v2.2.7 // indirect\n\t\
+    github.com/kr/text v0.2.0 // indirect\n\tgithub.com/leodido/go-urn v1.4.0 // indirect\n\
+    \tgithub.com/mattn/go-isatty v0.0.20 // indirect\n\tgithub.com/modern-go/concurrent\
+    \ v0.0.0-20180306012644-bacd9c7ef1dd // indirect\n\tgithub.com/modern-go/reflect2\
+    \ v1.0.2 // indirect\n\tgithub.com/pelletier/go-toml/v2 v2.2.2 // indirect\n\t\
+    github.com/rogpeppe/go-internal v1.14.1 // indirect\n\tgithub.com/twitchyliquid64/golang-asm\
+    \ v0.15.1 // indirect\n\tgithub.com/ugorji/go/codec v1.2.12 // indirect\n\tgolang.org/x/arch\
+    \ v0.8.0 // indirect\n\tgolang.org/x/net v0.28.0 // indirect\n\tgolang.org/x/sync\
+    \ v0.8.0 // indirect\n\tgolang.org/x/sys v0.26.0 // indirect\n\tgolang.org/x/text\
+    \ v0.18.0 // indirect\n\tgoogle.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142\
+    \ // indirect\n\tgopkg.in/yaml.v3 v3.0.1 // indirect\n)\n"
+- name: Makefile
+  content: "proto:\n\tprotoc --go_out=. --go-grpc_out=. proto/auth.proto"
+- name: go.sum
+  content: |
+    github.com/bytedance/sonic v1.11.6 h1:oUp34TzMlL+OY1OUWxHqsdkgC/Zfc85zGqw9siXjrc0=
+    github.com/bytedance/sonic v1.11.6/go.mod h1:LysEHSvpvDySVdC2f87zGWf6CIKJcAvqab1ZaiQtds4=
+    github.com/bytedance/sonic/loader v0.1.1 h1:c+e5Pt1k/cy5wMveRDyk2X4B9hF4g7an8N3zCYjJFNM=
+    github.com/bytedance/sonic/loader v0.1.1/go.mod h1:ncP89zfokxS5LZrJxl5z0UJcsk4M4yY2JpfqGeCtNLU=
+    github.com/cloudwego/base64x v0.1.4 h1:jwCgWpFanWmN8xoIUHa2rtzmkd5J2plF/dnLS6Xd/0Y=
+    github.com/cloudwego/base64x v0.1.4/go.mod h1:0zlkT4Wn5C6NdauXdJRhSKRlJvmclQ1hhJgA0rcu/8w=
+    github.com/cloudwego/iasm v0.2.0 h1:1KNIy1I1H9hNNFEEH3DVnI4UujN+1zjpuk6gwHLTssg=
+    github.com/cloudwego/iasm v0.2.0/go.mod h1:8rXZaNYT2n95jn+zTI1sDr+IgcD2GVs0nlbbQPiEFhY=
+    github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
+    github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+    github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+    github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+    github.com/gabriel-vasile/mimetype v1.4.3 h1:in2uUcidCuFcDKtdcBxlR0rJ1+fsokWf+uqxgUFjbI0=
+    github.com/gabriel-vasile/mimetype v1.4.3/go.mod h1:d8uq/6HKRL6CGdk+aubisF/M5GcPfT7nKyLpA0lbSSk=
+    github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE=
+    github.com/gin-contrib/sse v0.1.0/go.mod h1:RHrZQHXnP2xjPF+u1gW/2HnVO7nvIa9PG3Gm+fLHvGI=
+    github.com/gin-gonic/gin v1.10.0 h1:nTuyha1TYqgedzytsKYqna+DfLos46nTv2ygFy86HFU=
+    github.com/gin-gonic/gin v1.10.0/go.mod h1:4PMNQiOhvDRa013RKVbsiNwoyezlm2rm0uX/T7kzp5Y=
+    github.com/go-playground/assert/v2 v2.2.0 h1:JvknZsQTYeFEAhQwI4qEt9cyV5ONwRHC+lYKSsYSR8s=
+    github.com/go-playground/assert/v2 v2.2.0/go.mod h1:VDjEfimB/XKnb+ZQfWdccd7VUvScMdVu0Titje2rxJ4=
+    github.com/go-playground/locales v0.14.1 h1:EWaQ/wswjilfKLTECiXz7Rh+3BjFhfDFKv/oXslEjJA=
+    github.com/go-playground/locales v0.14.1/go.mod h1:hxrqLVvrK65+Rwrd5Fc6F2O76J/NuW9t0sjnWqG1slY=
+    github.com/go-playground/universal-translator v0.18.1 h1:Bcnm0ZwsGyWbCzImXv+pAJnYK9S473LQFuzCbDbfSFY=
+    github.com/go-playground/universal-translator v0.18.1/go.mod h1:xekY+UJKNuX9WP91TpwSH2VMlDf28Uj24BCp08ZFTUY=
+    github.com/go-playground/validator/v10 v10.20.0 h1:K9ISHbSaI0lyB2eWMPJo+kOS/FBExVwjEviJTixqxL8=
+    github.com/go-playground/validator/v10 v10.20.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
+    github.com/goccy/go-json v0.10.2 h1:CrxCmQqYDkv1z7lO7Wbh2HN93uovUHgrECaO5ZrCXAU=
+    github.com/goccy/go-json v0.10.2/go.mod h1:6MelG93GURQebXPDq3khkgXZkazVtN9CRI+MGFi0w8I=
+    github.com/golang-jwt/jwt/v5 v5.2.1 h1:OuVbFODueb089Lh128TAcimifWaLhJwVflnrgM17wHk=
+    github.com/golang-jwt/jwt/v5 v5.2.1/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
+    github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
+    github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+    github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
+    github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
+    github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
+    github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=
+    github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761/go.mod h1:5TJZWKEWniPve33vlWYSoGYefn3gLQRzjfDlhSJ9ZKM=
+    github.com/jackc/pgx/v5 v5.7.1 h1:x7SYsPBYDkHDksogeSmZZ5xzThcTgRz++I5E+ePFUcs=
+    github.com/jackc/pgx/v5 v5.7.1/go.mod h1:e7O26IywZZ+naJtWWos6i6fvWK+29etgITqrqHLfoZA=
+    github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=
+    github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
+    github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
+    github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+    github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
+    github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
+    github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
+    github.com/klauspost/cpuid/v2 v2.2.7 h1:ZWSB3igEs+d0qvnxR/ZBzXVmxkgt8DdzP6m9pfuVLDM=
+    github.com/klauspost/cpuid/v2 v2.2.7/go.mod h1:Lcz8mBdAVJIBVzewtcLocK12l3Y+JytZYpaMropDUws=
+    github.com/knz/go-libedit v1.10.1/go.mod h1:MZTVkCWyz0oBc7JOWP3wNAzd002ZbM/5hgShxwh4x8M=
+    github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
+    github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
+    github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
+    github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
+    github.com/leodido/go-urn v1.4.0 h1:WT9HwE9SGECu3lg4d/dIA+jxlljEa1/ffXKmRjqdmIQ=
+    github.com/leodido/go-urn v1.4.0/go.mod h1:bvxc+MVxLKB4z00jd1z+Dvzr47oO32F/QSNjSBOlFxI=
+    github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
+    github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
+    github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
+    github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=
+    github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
+    github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9Gz0M=
+    github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
+    github.com/pelletier/go-toml/v2 v2.2.2 h1:aYUidT7k73Pcl9nb2gScu7NSrKCSHIDE89b3+6Wq+LM=
+    github.com/pelletier/go-toml/v2 v2.2.2/go.mod h1:1t835xjRzz80PqgE6HHgN2JOsmgYu/h4qDAS4n929Rs=
+    github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+    github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+    github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
+    github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
+    github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+    github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
+    github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
+    github.com/stretchr/objx v0.5.2/go.mod h1:FRsXN1f5AsAjCGJKqEizvkpNtU+EGNCLh3NxZ/8L+MA=
+    github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
+    github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+    github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+    github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
+    github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
+    github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
+    github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
+    github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
+    github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
+    github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
+    github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65EE=
+    github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
+    golang.org/x/arch v0.0.0-20210923205945-b76863e36670/go.mod h1:5om86z9Hs0C8fWVUuoMHwpExlXzs5Tkyp9hOrfG7pp8=
+    golang.org/x/arch v0.8.0 h1:3wRIsP3pM4yUptoR96otTUOXI367OS0+c9eeRi9doIc=
+    golang.org/x/arch v0.8.0/go.mod h1:FEVrYAQjsQXMVJ1nsMoVVXPZg6p2JE2mx8psSWTDQys=
+    golang.org/x/crypto v0.27.0 h1:GXm2NjJrPaiv/h1tb2UH8QfgC/hOf/+z0p6PT8o1w7A=
+    golang.org/x/crypto v0.27.0/go.mod h1:1Xngt8kV6Dvbssa53Ziq6Eqn0HqbZi5Z6R0ZpwQzt70=
+    golang.org/x/net v0.28.0 h1:a9JDOJc5GMUJ0+UDqmLT86WiEy7iWyIhz8gz8E4e5hE=
+    golang.org/x/net v0.28.0/go.mod h1:yqtgsTWOOnlGLG9GFRrK3++bGOUEkNBoHZc8MEDWPNg=
+    golang.org/x/sync v0.8.0 h1:3NFvSEYkUoMifnESzZl15y791HH1qU2xm6eCJU5ZPXQ=
+    golang.org/x/sync v0.8.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
+    golang.org/x/sys v0.5.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+    golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+    golang.org/x/sys v0.26.0 h1:KHjCJyddX0LoSTb3J+vWpupP9p0oznkqVk/IfjymZbo=
+    golang.org/x/sys v0.26.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
+    golang.org/x/text v0.18.0 h1:XvMDiNzPAl0jr17s6W9lcaIhGUfUORdGCNsuLmPG224=
+    golang.org/x/text v0.18.0/go.mod h1:BuEKDfySbSR4drPmRPG/7iBdf8hvFMuRexcpahXilzY=
+    google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 h1:e7S5W7MGGLaSu8j3YjdezkZ+m1/Nm0uRVRMEMGk26Xs=
+    google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142/go.mod h1:UqMtugtsSgubUsoxbuAoiCXvqvErP7Gf0so0mK9tHxU=
+    google.golang.org/grpc v1.67.1 h1:zWnc1Vrcno+lHZCOofnIMvycFcc0QRGIzm9dhnDX68E=
+    google.golang.org/grpc v1.67.1/go.mod h1:1gLDyUQU7CTLJI90u3nXZ9ekeghjeM7pTDZlqFNg2AA=
+    google.golang.org/protobuf v1.34.2 h1:6xV6lTsCfpGD21XK49h7MhtcApnLqkfYgPcdHftf6hg=
+    google.golang.org/protobuf v1.34.2/go.mod h1:qYOHts0dSfpeUzUFpOMr/WGzszTmLH+DiWniOlNbLDw=
+    gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+    gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
+    gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
+    gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+    gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
+    gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+    nullprogram.com/x/optparse v1.0.0/go.mod h1:KdyPE+Igbe0jQUrVfMqDMeJQIJZEuyV7pjYmp6pbG50=
+    rsc.io/pdf v0.1.1/go.mod h1:n8OzWcQ6Sp37PL01nO98y4iUCRdTGarVfzxY20ICaU4=
+- name: internal/domain/user.go
+  content: "package domain\n\nimport \"time\"\n\ntype User struct {\n\tID        \
+    \   int64     `json:\"id\"`\n\tUsername     string    `json:\"username\"`\n\t\
+    Email        string    `json:\"email\"`\n\tPasswordHash string    `json:\"-\"\
+    `\n\tCreatedAt    time.Time `json:\"createdAt\"`\n}\n"
+- name: internal/config/config.go
+  content: "package config\n\nimport (\n\t\"os\"\n\n\t\"github.com/joho/godotenv\"\
+    \n)\n\ntype Config struct {\n\tHTTPPort    string\n\tGRPCPort    string\n\tDatabaseURL\
+    \ string\n\tJWTSecret   string\n}\n\nfunc NewFromEnv() *Config {\n\t_ = godotenv.Load()\n\
+    \n\treturn &Config{\n\t\tHTTPPort:    getEnv(\"HTTP_PORT\", \"8001\"),\n\t\tGRPCPort:\
+    \    getEnv(\"GRPC_PORT\", \"50001\"),\n\t\tDatabaseURL: os.Getenv(\"DATABASE_URL\"\
+    ),\n\t\tJWTSecret:   os.Getenv(\"JWT_SECRET\"),\n\t}\n}\n\nfunc getEnv(key, fallback\
+    \ string) string {\n\tif v := os.Getenv(key); v != \"\" {\n\t\treturn v\n\t}\n\
+    \treturn fallback\n}\n"
+- name: internal/delivery/grpc/server.go
+  content: "package grpc\n\nimport (\n\t\"context\"\n\n\t\"github.com/Kovalyovv/auth-service/internal/delivery/grpc/pb\"\
+    \n\t\"github.com/Kovalyovv/auth-service/internal/usecase\"\n)\n\ntype Server struct\
+    \ {\n\tpb.UnimplementedAuthServiceServer\n\tuc *usecase.AuthUseCase\n}\n\nfunc\
+    \ NewServer(uc *usecase.AuthUseCase) *Server {\n\treturn &Server{uc: uc}\n}\n\n\
+    func (s *Server) VerifyToken(ctx context.Context, req *pb.VerifyTokenRequest)\
+    \ (*pb.VerifyTokenResponse, error) {\n\tuserID, err := s.uc.Verify(req.GetToken())\n\
+    \tif err != nil {\n\t\treturn &pb.VerifyTokenResponse{Valid: false}, nil\n\t}\n\
+    \n\treturn &pb.VerifyTokenResponse{\n\t\tUserId: userID,\n\t\tValid:  true,\n\t\
+    }, nil\n}\n"
+- name: internal/delivery/grpc/pb/auth.pb.go
+  content: "// Code generated by protoc-gen-go. DO NOT EDIT.\n// versions:\n// \t\
+    protoc-gen-go v1.36.11\n// \tprotoc        v3.21.12\n// source: auth.proto\n\n\
+    package pb\n\nimport (\n\tprotoreflect \"google.golang.org/protobuf/reflect/protoreflect\"\
+    \n\tprotoimpl \"google.golang.org/protobuf/runtime/protoimpl\"\n\treflect \"reflect\"\
+    \n\tsync \"sync\"\n\tunsafe \"unsafe\"\n)\n\nconst (\n\t// Verify that this generated\
+    \ code is sufficiently up-to-date.\n\t_ = protoimpl.EnforceVersion(20 - protoimpl.MinVersion)\n\
+    \t// Verify that runtime/protoimpl is sufficiently up-to-date.\n\t_ = protoimpl.EnforceVersion(protoimpl.MaxVersion\
+    \ - 20)\n)\n\ntype VerifyTokenRequest struct {\n\tstate         protoimpl.MessageState\
+    \ `protogen:\"open.v1\"`\n\tToken         string                 `protobuf:\"\
+    bytes,1,opt,name=token,proto3\" json:\"token,omitempty\"`\n\tunknownFields protoimpl.UnknownFields\n\
+    \tsizeCache     protoimpl.SizeCache\n}\n\nfunc (x *VerifyTokenRequest) Reset()\
+    \ {\n\t*x = VerifyTokenRequest{}\n\tmi := &file_auth_proto_msgTypes[0]\n\tms :=\
+    \ protoimpl.X.MessageStateOf(protoimpl.Pointer(x))\n\tms.StoreMessageInfo(mi)\n\
+    }\n\nfunc (x *VerifyTokenRequest) String() string {\n\treturn protoimpl.X.MessageStringOf(x)\n\
+    }\n\nfunc (*VerifyTokenRequest) ProtoMessage() {}\n\nfunc (x *VerifyTokenRequest)\
+    \ ProtoReflect() protoreflect.Message {\n\tmi := &file_auth_proto_msgTypes[0]\n\
+    \tif x != nil {\n\t\tms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))\n\t\
+    \tif ms.LoadMessageInfo() == nil {\n\t\t\tms.StoreMessageInfo(mi)\n\t\t}\n\t\t\
+    return ms\n\t}\n\treturn mi.MessageOf(x)\n}\n\n// Deprecated: Use VerifyTokenRequest.ProtoReflect.Descriptor\
+    \ instead.\nfunc (*VerifyTokenRequest) Descriptor() ([]byte, []int) {\n\treturn\
+    \ file_auth_proto_rawDescGZIP(), []int{0}\n}\n\nfunc (x *VerifyTokenRequest) GetToken()\
+    \ string {\n\tif x != nil {\n\t\treturn x.Token\n\t}\n\treturn \"\"\n}\n\ntype\
+    \ VerifyTokenResponse struct {\n\tstate         protoimpl.MessageState `protogen:\"\
+    open.v1\"`\n\tUserId        int64                  `protobuf:\"varint,1,opt,name=user_id,json=userId,proto3\"\
+    \ json:\"user_id,omitempty\"`\n\tValid         bool                   `protobuf:\"\
+    varint,2,opt,name=valid,proto3\" json:\"valid,omitempty\"`\n\tunknownFields protoimpl.UnknownFields\n\
+    \tsizeCache     protoimpl.SizeCache\n}\n\nfunc (x *VerifyTokenResponse) Reset()\
+    \ {\n\t*x = VerifyTokenResponse{}\n\tmi := &file_auth_proto_msgTypes[1]\n\tms\
+    \ := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))\n\tms.StoreMessageInfo(mi)\n\
+    }\n\nfunc (x *VerifyTokenResponse) String() string {\n\treturn protoimpl.X.MessageStringOf(x)\n\
+    }\n\nfunc (*VerifyTokenResponse) ProtoMessage() {}\n\nfunc (x *VerifyTokenResponse)\
+    \ ProtoReflect() protoreflect.Message {\n\tmi := &file_auth_proto_msgTypes[1]\n\
+    \tif x != nil {\n\t\tms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))\n\t\
+    \tif ms.LoadMessageInfo() == nil {\n\t\t\tms.StoreMessageInfo(mi)\n\t\t}\n\t\t\
+    return ms\n\t}\n\treturn mi.MessageOf(x)\n}\n\n// Deprecated: Use VerifyTokenResponse.ProtoReflect.Descriptor\
+    \ instead.\nfunc (*VerifyTokenResponse) Descriptor() ([]byte, []int) {\n\treturn\
+    \ file_auth_proto_rawDescGZIP(), []int{1}\n}\n\nfunc (x *VerifyTokenResponse)\
+    \ GetUserId() int64 {\n\tif x != nil {\n\t\treturn x.UserId\n\t}\n\treturn 0\n\
+    }\n\nfunc (x *VerifyTokenResponse) GetValid() bool {\n\tif x != nil {\n\t\treturn\
+    \ x.Valid\n\t}\n\treturn false\n}\n\nvar File_auth_proto protoreflect.FileDescriptor\n\
+    \nconst file_auth_proto_rawDesc = \"\" +\n\t\"\\n\" +\n\t\"\\n\" +\n\t\"auth.proto\\\
+    x12\\x04auth\\\"*\\n\" +\n\t\"\\x12VerifyTokenRequest\\x12\\x14\\n\" +\n\t\"\\\
+    x05token\\x18\\x01 \\x01(\\tR\\x05token\\\"D\\n\" +\n\t\"\\x13VerifyTokenResponse\\\
+    x12\\x17\\n\" +\n\t\"\\auser_id\\x18\\x01 \\x01(\\x03R\\x06userId\\x12\\x14\\\
+    n\" +\n\t\"\\x05valid\\x18\\x02 \\x01(\\bR\\x05valid2Q\\n\" +\n\t\"\\vAuthService\\\
+    x12B\\n\" +\n\t\"\\vVerifyToken\\x12\\x18.auth.VerifyTokenRequest\\x1a\\x19.auth.VerifyTokenResponseB=Z;github.com/Kovalyovv/auth-service/internal/delivery/grpc/pbb\\\
+    x06proto3\"\n\nvar (\n\tfile_auth_proto_rawDescOnce sync.Once\n\tfile_auth_proto_rawDescData\
+    \ []byte\n)\n\nfunc file_auth_proto_rawDescGZIP() []byte {\n\tfile_auth_proto_rawDescOnce.Do(func()\
+    \ {\n\t\tfile_auth_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_auth_proto_rawDesc),\
+    \ len(file_auth_proto_rawDesc)))\n\t})\n\treturn file_auth_proto_rawDescData\n\
+    }\n\nvar file_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 2)\nvar file_auth_proto_goTypes\
+    \ = []any{\n\t(*VerifyTokenRequest)(nil),  // 0: auth.VerifyTokenRequest\n\t(*VerifyTokenResponse)(nil),\
+    \ // 1: auth.VerifyTokenResponse\n}\nvar file_auth_proto_depIdxs = []int32{\n\t\
+    0, // 0: auth.AuthService.VerifyToken:input_type -> auth.VerifyTokenRequest\n\t\
+    1, // 1: auth.AuthService.VerifyToken:output_type -> auth.VerifyTokenResponse\n\
+    \t1, // [1:2] is the sub-list for method output_type\n\t0, // [0:1] is the sub-list\
+    \ for method input_type\n\t0, // [0:0] is the sub-list for extension type_name\n\
+    \t0, // [0:0] is the sub-list for extension extendee\n\t0, // [0:0] is the sub-list\
+    \ for field type_name\n}\n\nfunc init() { file_auth_proto_init() }\nfunc file_auth_proto_init()\
+    \ {\n\tif File_auth_proto != nil {\n\t\treturn\n\t}\n\ttype x struct{}\n\tout\
+    \ := protoimpl.TypeBuilder{\n\t\tFile: protoimpl.DescBuilder{\n\t\t\tGoPackagePath:\
+    \ reflect.TypeOf(x{}).PkgPath(),\n\t\t\tRawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_proto_rawDesc),\
+    \ len(file_auth_proto_rawDesc)),\n\t\t\tNumEnums:      0,\n\t\t\tNumMessages:\
+    \   2,\n\t\t\tNumExtensions: 0,\n\t\t\tNumServices:   1,\n\t\t},\n\t\tGoTypes:\
+    \           file_auth_proto_goTypes,\n\t\tDependencyIndexes: file_auth_proto_depIdxs,\n\
+    \t\tMessageInfos:      file_auth_proto_msgTypes,\n\t}.Build()\n\tFile_auth_proto\
+    \ = out.File\n\tfile_auth_proto_goTypes = nil\n\tfile_auth_proto_depIdxs = nil\n\
+    }\n"
+- name: internal/delivery/grpc/pb/auth_grpc.pb.go
+  content: "// Code generated by protoc-gen-go-grpc. DO NOT EDIT.\n// versions:\n\
+    // - protoc-gen-go-grpc v1.6.0\n// - protoc             v3.21.12\n// source: auth.proto\n\
+    \npackage pb\n\nimport (\n\tcontext \"context\"\n\tgrpc \"google.golang.org/grpc\"\
+    \n\tcodes \"google.golang.org/grpc/codes\"\n\tstatus \"google.golang.org/grpc/status\"\
+    \n)\n\n// This is a compile-time assertion to ensure that this generated file\n\
+    // is compatible with the grpc package it is being compiled against.\n// Requires\
+    \ gRPC-Go v1.64.0 or later.\nconst _ = grpc.SupportPackageIsVersion9\n\nconst\
+    \ (\n\tAuthService_VerifyToken_FullMethodName = \"/auth.AuthService/VerifyToken\"\
+    \n)\n\n// AuthServiceClient is the client API for AuthService service.\n//\n//\
+    \ For semantics around ctx use and closing/ending streaming RPCs, please refer\
+    \ to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.\n\
+    type AuthServiceClient interface {\n\tVerifyToken(ctx context.Context, in *VerifyTokenRequest,\
+    \ opts ...grpc.CallOption) (*VerifyTokenResponse, error)\n}\n\ntype authServiceClient\
+    \ struct {\n\tcc grpc.ClientConnInterface\n}\n\nfunc NewAuthServiceClient(cc grpc.ClientConnInterface)\
+    \ AuthServiceClient {\n\treturn &authServiceClient{cc}\n}\n\nfunc (c *authServiceClient)\
+    \ VerifyToken(ctx context.Context, in *VerifyTokenRequest, opts ...grpc.CallOption)\
+    \ (*VerifyTokenResponse, error) {\n\tcOpts := append([]grpc.CallOption{grpc.StaticMethod()},\
+    \ opts...)\n\tout := new(VerifyTokenResponse)\n\terr := c.cc.Invoke(ctx, AuthService_VerifyToken_FullMethodName,\
+    \ in, out, cOpts...)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\treturn out,\
+    \ nil\n}\n\n// AuthServiceServer is the server API for AuthService service.\n\
+    // All implementations must embed UnimplementedAuthServiceServer\n// for forward\
+    \ compatibility.\ntype AuthServiceServer interface {\n\tVerifyToken(context.Context,\
+    \ *VerifyTokenRequest) (*VerifyTokenResponse, error)\n\tmustEmbedUnimplementedAuthServiceServer()\n\
+    }\n\n// UnimplementedAuthServiceServer must be embedded to have\n// forward compatible\
+    \ implementations.\n//\n// NOTE: this should be embedded by value instead of pointer\
+    \ to avoid a nil\n// pointer dereference when methods are called.\ntype UnimplementedAuthServiceServer\
+    \ struct{}\n\nfunc (UnimplementedAuthServiceServer) VerifyToken(context.Context,\
+    \ *VerifyTokenRequest) (*VerifyTokenResponse, error) {\n\treturn nil, status.Error(codes.Unimplemented,\
+    \ \"method VerifyToken not implemented\")\n}\nfunc (UnimplementedAuthServiceServer)\
+    \ mustEmbedUnimplementedAuthServiceServer() {}\nfunc (UnimplementedAuthServiceServer)\
+    \ testEmbeddedByValue()                     {}\n\n// UnsafeAuthServiceServer may\
+    \ be embedded to opt out of forward compatibility for this service.\n// Use of\
+    \ this interface is not recommended, as added methods to AuthServiceServer will\n\
+    // result in compilation errors.\ntype UnsafeAuthServiceServer interface {\n\t\
+    mustEmbedUnimplementedAuthServiceServer()\n}\n\nfunc RegisterAuthServiceServer(s\
+    \ grpc.ServiceRegistrar, srv AuthServiceServer) {\n\t// If the following call\
+    \ panics, it indicates UnimplementedAuthServiceServer was\n\t// embedded by pointer\
+    \ and is nil.  This will cause panics if an\n\t// unimplemented method is ever\
+    \ invoked, so we test this at initialization\n\t// time to prevent it from happening\
+    \ at runtime later due to I/O.\n\tif t, ok := srv.(interface{ testEmbeddedByValue()\
+    \ }); ok {\n\t\tt.testEmbeddedByValue()\n\t}\n\ts.RegisterService(&AuthService_ServiceDesc,\
+    \ srv)\n}\n\nfunc _AuthService_VerifyToken_Handler(srv interface{}, ctx context.Context,\
+    \ dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{},\
+    \ error) {\n\tin := new(VerifyTokenRequest)\n\tif err := dec(in); err != nil {\n\
+    \t\treturn nil, err\n\t}\n\tif interceptor == nil {\n\t\treturn srv.(AuthServiceServer).VerifyToken(ctx,\
+    \ in)\n\t}\n\tinfo := &grpc.UnaryServerInfo{\n\t\tServer:     srv,\n\t\tFullMethod:\
+    \ AuthService_VerifyToken_FullMethodName,\n\t}\n\thandler := func(ctx context.Context,\
+    \ req interface{}) (interface{}, error) {\n\t\treturn srv.(AuthServiceServer).VerifyToken(ctx,\
+    \ req.(*VerifyTokenRequest))\n\t}\n\treturn interceptor(ctx, in, info, handler)\n\
+    }\n\n// AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.\n\
+    // It's only intended for direct use with grpc.RegisterService,\n// and not to\
+    \ be introspected or modified (even as a copy)\nvar AuthService_ServiceDesc =\
+    \ grpc.ServiceDesc{\n\tServiceName: \"auth.AuthService\",\n\tHandlerType: (*AuthServiceServer)(nil),\n\
+    \tMethods: []grpc.MethodDesc{\n\t\t{\n\t\t\tMethodName: \"VerifyToken\",\n\t\t\
+    \tHandler:    _AuthService_VerifyToken_Handler,\n\t\t},\n\t},\n\tStreams:  []grpc.StreamDesc{},\n\
+    \tMetadata: \"auth.proto\",\n}\n"
+- name: internal/delivery/http/server.go
+  content: "package http\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\n\t\"github.com/Kovalyovv/auth-service/internal/config\"\
+    \n\t\"github.com/gin-gonic/gin\"\n)\n\nfunc NewServer(cfg *config.Config, handler\
+    \ *AuthHandler) *http.Server {\n\trouter := gin.Default()\n\n\tauth := router.Group(\"\
+    /auth\")\n\t{\n\t\tauth.POST(\"/register\", handler.Register)\n\t\tauth.POST(\"\
+    /login\", handler.Login)\n\t}\n\n\treturn &http.Server{\n\t\tAddr:    fmt.Sprintf(\"\
+    :%s\", cfg.HTTPPort),\n\t\tHandler: router,\n\t}\n}\n"
+- name: internal/delivery/http/handler.go
+  content: "package http\n\nimport (\n\t\"net/http\"\n\n\t\"github.com/Kovalyovv/auth-service/internal/usecase\"\
+    \n\t\"github.com/gin-gonic/gin\"\n)\n\ntype AuthHandler struct {\n\tuc *usecase.AuthUseCase\n\
+    }\n\nfunc NewAuthHandler(uc *usecase.AuthUseCase) *AuthHandler {\n\treturn &AuthHandler{uc:\
+    \ uc}\n}\n\ntype registerReq struct {\n\tUsername string `json:\"username\" binding:\"\
+    required\"`\n\tEmail    string `json:\"email\" binding:\"required,email\"`\n\t\
+    Password string `json:\"password\" binding:\"required,min=6\"`\n}\n\ntype loginReq\
+    \ struct {\n\tEmail    string `json:\"email\" binding:\"required,email\"`\n\t\
+    Password string `json:\"password\" binding:\"required\"`\n}\n\nfunc (h *AuthHandler)\
+    \ Register(c *gin.Context) {\n\tvar req registerReq\n\tif err := c.ShouldBindJSON(&req);\
+    \ err != nil {\n\t\tc.JSON(http.StatusBadRequest, gin.H{\"error\": err.Error()})\n\
+    \t\treturn\n\t}\n\n\tif err := h.uc.Register(c.Request.Context(), req.Username,\
+    \ req.Email, req.Password); err != nil {\n\t\tc.JSON(http.StatusInternalServerError,\
+    \ gin.H{\"error\": err.Error()})\n\t\treturn\n\t}\n\n\tc.Status(http.StatusCreated)\n\
+    }\n\nfunc (h *AuthHandler) Login(c *gin.Context) {\n\tvar req loginReq\n\tif err\
+    \ := c.ShouldBindJSON(&req); err != nil {\n\t\tc.JSON(http.StatusBadRequest, gin.H{\"\
+    error\": err.Error()})\n\t\treturn\n\t}\n\n\ttoken, err := h.uc.Login(c.Request.Context(),\
+    \ req.Email, req.Password)\n\tif err != nil {\n\t\tc.JSON(http.StatusUnauthorized,\
+    \ gin.H{\"error\": err.Error()})\n\t\treturn\n\t}\n\n\tc.JSON(http.StatusOK, gin.H{\"\
+    token\": token})\n}\n"
+- name: internal/usecase/auth_usecase.go
+  content: "package usecase\n\nimport (\n\t\"context\"\n\t\"errors\"\n\t\"time\"\n\
+    \n\t\"github.com/Kovalyovv/auth-service/internal/domain\"\n\t\"github.com/Kovalyovv/auth-service/internal/pkg/hash\"\
+    \n\t\"github.com/Kovalyovv/auth-service/internal/pkg/jwt\"\n)\n\ntype UserRepository\
+    \ interface {\n\tCreate(ctx context.Context, user *domain.User) error\n\tGetByEmail(ctx\
+    \ context.Context, email string) (*domain.User, error)\n}\n\ntype AuthUseCase\
+    \ struct {\n\trepo         UserRepository\n\ttokenManager *jwt.TokenManager\n\
+    }\n\nfunc NewAuthUseCase(repo UserRepository, tm *jwt.TokenManager) *AuthUseCase\
+    \ {\n\treturn &AuthUseCase{repo: repo, tokenManager: tm}\n}\n\nfunc (uc *AuthUseCase)\
+    \ Register(ctx context.Context, username, email, password string) error {\n\t\
+    h, _ := hash.HashPassword(password)\n\tuser := &domain.User{\n\t\tUsername:  \
+    \   username,\n\t\tEmail:        email,\n\t\tPasswordHash: h,\n\t}\n\treturn uc.repo.Create(ctx,\
+    \ user)\n}\n\nfunc (uc *AuthUseCase) Login(ctx context.Context, email, password\
+    \ string) (string, error) {\n\tuser, err := uc.repo.GetByEmail(ctx, email)\n\t\
+    if err != nil {\n\t\treturn \"\", errors.New(\"invalid credentials\")\n\t}\n\n\
+    \tif !hash.CheckPasswordHash(password, user.PasswordHash) {\n\t\treturn \"\",\
+    \ errors.New(\"invalid credentials\")\n\t}\n\n\treturn uc.tokenManager.GenerateToken(user.ID,\
+    \ time.Hour*24)\n}\n\nfunc (uc *AuthUseCase) Verify(token string) (int64, error)\
+    \ {\n\treturn uc.tokenManager.ValidateToken(token)\n}\n"
+- name: internal/pkg/jwt/manager.go
+  content: "package jwt\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/golang-jwt/jwt/v5\"\
+    \n)\n\ntype TokenManager struct {\n\tsecretKey string\n}\n\nfunc NewTokenManager(secretKey\
+    \ string) *TokenManager {\n\treturn &TokenManager{secretKey: secretKey}\n}\n\n\
+    func (m *TokenManager) GenerateToken(userID int64, duration time.Duration) (string,\
+    \ error) {\n\tclaims := jwt.MapClaims{\n\t\t\"sub\": userID,\n\t\t\"exp\": time.Now().Add(duration).Unix(),\n\
+    \t\t\"iat\": time.Now().Unix(),\n\t}\n\n\ttoken := jwt.NewWithClaims(jwt.SigningMethodHS256,\
+    \ claims)\n\treturn token.SignedString([]byte(m.secretKey))\n}\n\nfunc (m *TokenManager)\
+    \ ValidateToken(tokenStr string) (int64, error) {\n\ttoken, err := jwt.Parse(tokenStr,\
+    \ func(token *jwt.Token) (interface{}, error) {\n\t\tif _, ok := token.Method.(*jwt.SigningMethodHMAC);\
+    \ !ok {\n\t\t\treturn nil, fmt.Errorf(\"unexpected signing method\")\n\t\t}\n\t\
+    \treturn []byte(m.secretKey), nil\n\t})\n\n\tif err != nil {\n\t\treturn 0, err\n\
+    \t}\n\n\tif claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {\n\t\
+    \tuserID := int64(claims[\"sub\"].(float64))\n\t\treturn userID, nil\n\t}\n\n\t\
+    return 0, fmt.Errorf(\"invalid token\")\n}\n"
+- name: internal/pkg/hash/password.go
+  content: "package hash\n\nimport \"golang.org/x/crypto/bcrypt\"\n\nfunc HashPassword(password\
+    \ string) (string, error) {\n\tbytes, err := bcrypt.GenerateFromPassword([]byte(password),\
+    \ 14)\n\treturn string(bytes), err\n}\n\nfunc CheckPasswordHash(password, hash\
+    \ string) bool {\n\terr := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))\n\
+    \treturn err == nil\n}\n"
+- name: internal/repository/postgres/user_repo.go
+  content: "package postgres\n\nimport (\n\t\"context\"\n\n\t\"github.com/Kovalyovv/auth-service/internal/domain\"\
+    \n\t\"github.com/jackc/pgx/v5/pgxpool\"\n)\n\ntype UserRepo struct {\n\tpool *pgxpool.Pool\n\
+    }\n\nfunc NewUserRepo(pool *pgxpool.Pool) *UserRepo {\n\treturn &UserRepo{pool:\
+    \ pool}\n}\n\nfunc (r *UserRepo) Create(ctx context.Context, user *domain.User)\
+    \ error {\n\tquery := `INSERT INTO users (username, email, password_hash) VALUES\
+    \ ($1, $2, $3) RETURNING id, created_at`\n\treturn r.pool.QueryRow(ctx, query,\
+    \ user.Username, user.Email, user.PasswordHash).Scan(&user.ID, &user.CreatedAt)\n\
+    }\n\nfunc (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User,\
+    \ error) {\n\tvar u domain.User\n\tquery := `SELECT id, username, email, password_hash,\
+    \ created_at FROM users WHERE email = $1`\n\terr := r.pool.QueryRow(ctx, query,\
+    \ email).Scan(&u.ID, &u.Username, &u.Email, &u.PasswordHash, &u.CreatedAt)\n\t\
+    if err != nil {\n\t\treturn nil, err\n\t}\n\treturn &u, nil\n}\n"
+- name: cmd/auth/main.go
+  content: "package main\n\nimport (\n\t\"context\"\n\t\"log\"\n\t\"net\"\n\t\"net/http\"\
+    \n\t\"os\"\n\t\"os/signal\"\n\t\"syscall\"\n\t\"time\"\n\n\t\"github.com/Kovalyovv/auth-service/internal/config\"\
+    \n\tdeliveryGRPC \"github.com/Kovalyovv/auth-service/internal/delivery/grpc\"\n\
+    \t\"github.com/Kovalyovv/auth-service/internal/delivery/grpc/pb\"\n\tdeliveryHTTP\
+    \ \"github.com/Kovalyovv/auth-service/internal/delivery/http\"\n\t\"github.com/Kovalyovv/auth-service/internal/pkg/jwt\"\
+    \n\t\"github.com/Kovalyovv/auth-service/internal/repository/postgres\"\n\t\"github.com/Kovalyovv/auth-service/internal/usecase\"\
+    \n\t\"github.com/jackc/pgx/v5/pgxpool\"\n\t\"google.golang.org/grpc\"\n)\n\nfunc\
+    \ main() {\n\tcfg := config.NewFromEnv()\n\n\tpool, err := pgxpool.New(context.Background(),\
+    \ cfg.DatabaseURL)\n\tif err != nil {\n\t\tlog.Fatalf(\"failed to connect to db:\
+    \ %v\", err)\n\t}\n\tdefer pool.Close()\n\n\tuserRepo := postgres.NewUserRepo(pool)\n\
+    \ttokenManager := jwt.NewTokenManager(cfg.JWTSecret)\n\tauthUC := usecase.NewAuthUseCase(userRepo,\
+    \ tokenManager)\n\n\tgrpcSrv := grpc.NewServer()\n\tpb.RegisterAuthServiceServer(grpcSrv,\
+    \ deliveryGRPC.NewServer(authUC))\n\n\tlis, err := net.Listen(\"tcp\", \":\"+cfg.GRPCPort)\n\
+    \tif err != nil {\n\t\tlog.Fatalf(\"failed to listen grpc: %v\", err)\n\t}\n\n\
+    \tgo func() {\n\t\tlog.Printf(\"gRPC server listening on %s\", cfg.GRPCPort)\n\
+    \t\tif err := grpcSrv.Serve(lis); err != nil {\n\t\t\tlog.Fatalf(\"grpc serve\
+    \ err: %v\", err)\n\t\t}\n\t}()\n\n\tauthHandler := deliveryHTTP.NewAuthHandler(authUC)\n\
+    \thttpSrv := deliveryHTTP.NewServer(cfg, authHandler)\n\n\tgo func() {\n\t\tlog.Printf(\"\
+    HTTP server listening on %s\", cfg.HTTPPort)\n\t\tif err := httpSrv.ListenAndServe();\
+    \ err != nil && err != http.ErrServerClosed {\n\t\t\tlog.Fatalf(\"http listen\
+    \ err: %v\", err)\n\t\t}\n\t}()\n\n\tquit := make(chan os.Signal, 1)\n\tsignal.Notify(quit,\
+    \ syscall.SIGINT, syscall.SIGTERM)\n\t<-quit\n\n\tgrpcSrv.GracefulStop()\n\tctx,\
+    \ cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer\
+    \ cancel()\n\t_ = httpSrv.Shutdown(ctx)\n}\n"
