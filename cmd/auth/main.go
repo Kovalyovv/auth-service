@@ -12,11 +12,11 @@ import (
 
 	"github.com/Kovalyovv/auth-service/internal/config"
 	deliveryGRPC "github.com/Kovalyovv/auth-service/internal/delivery/grpc"
-	"github.com/Kovalyovv/auth-service/internal/delivery/grpc/pb"
 	deliveryHTTP "github.com/Kovalyovv/auth-service/internal/delivery/http"
 	"github.com/Kovalyovv/auth-service/internal/pkg/jwt"
 	"github.com/Kovalyovv/auth-service/internal/repository/postgres"
 	"github.com/Kovalyovv/auth-service/internal/usecase"
+	"github.com/Kovalyovv/auth-service/pkg/pb"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 )

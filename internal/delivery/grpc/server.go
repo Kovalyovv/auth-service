@@ -3,8 +3,8 @@ package grpc
 import (
 	"context"
 
-	"github.com/Kovalyovv/auth-service/internal/delivery/grpc/pb"
 	"github.com/Kovalyovv/auth-service/internal/usecase"
+	"github.com/Kovalyovv/auth-service/pkg/pb"
 )
 
 type Server struct {

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "github.com/Kovalyovv/auth-service/internal/delivery/grpc/pb";
+option go_package = "github.com/Kovalyovv/auth-service/pkg/pb";
 
 service AuthService {
   rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse);
