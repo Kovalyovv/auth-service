@@ -13,6 +13,9 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user *domain.User) error
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
+	SaveRefreshToken(ctx context.Context, userID int64, token string, expiresAt time.Time) error
+	GetRefreshToken(ctx context.Context, token string) (int64, time.Time, error)
+	DeleteRefreshToken(ctx context.Context, token string) error
 }
 
 type AuthUseCase struct {
@@ -29,7 +32,6 @@ func (uc *AuthUseCase) Register(ctx context.Context, username, email, password s
 	if err != nil {
 		return err
 	}
-
 	user := &domain.User{
 		Username:     username,
 		Email:        email,
@@ -38,19 +40,58 @@ func (uc *AuthUseCase) Register(ctx context.Context, username, email, password s
 	return uc.repo.Create(ctx, user)
 }
 
-func (uc *AuthUseCase) Login(ctx context.Context, email, password string) (string, error) {
+func (uc *AuthUseCase) Login(ctx context.Context, email, password string) (domain.TokenPair, error) {
 	user, err := uc.repo.GetByEmail(ctx, email)
 	if err != nil {
-		return "", errors.New("invalid credentials")
+		return domain.TokenPair{}, errors.New("invalid credentials")
 	}
 
 	if !hash.CheckPasswordHash(password, user.PasswordHash) {
-		return "", errors.New("invalid credentials")
+		return domain.TokenPair{}, errors.New("invalid credentials")
 	}
 
-	return uc.tokenManager.GenerateToken(user.ID, time.Hour*24)
+	return uc.generatePair(ctx, user.ID)
 }
 
 func (uc *AuthUseCase) Verify(token string) (int64, error) {
 	return uc.tokenManager.ValidateToken(token)
+}
+
+func (uc *AuthUseCase) Refresh(ctx context.Context, refreshToken string) (domain.TokenPair, error) {
+	userID, expiresAt, err := uc.repo.GetRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return domain.TokenPair{}, errors.New("invalid refresh token")
+	}
+
+	if time.Now().After(expiresAt) {
+		_ = uc.repo.DeleteRefreshToken(ctx, refreshToken)
+		return domain.TokenPair{}, errors.New("refresh token expired")
+	}
+
+	_ = uc.repo.DeleteRefreshToken(ctx, refreshToken)
+
+	return uc.generatePair(ctx, userID)
+}
+
+func (uc *AuthUseCase) generatePair(ctx context.Context, userID int64) (domain.TokenPair, error) {
+	accessToken, err := uc.tokenManager.GenerateAccessToken(userID, time.Minute*15)
+	if err != nil {
+		return domain.TokenPair{}, err
+	}
+
+	refreshToken, err := uc.tokenManager.GenerateRefreshToken()
+	if err != nil {
+		return domain.TokenPair{}, err
+	}
+
+	expiresAt := time.Now().Add(time.Hour * 24 * 7)
+	err = uc.repo.SaveRefreshToken(ctx, userID, refreshToken, expiresAt)
+	if err != nil {
+		return domain.TokenPair{}, err
+	}
+
+	return domain.TokenPair{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }

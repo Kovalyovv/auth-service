@@ -26,6 +26,10 @@ type loginReq struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type refreshReq struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req registerReq
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -55,4 +59,20 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
+}
+
+func (h *AuthHandler) Refresh(c *gin.Context) {
+	var req refreshReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	pair, err := h.uc.Refresh(c.Request.Context(), req.RefreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, pair)
 }

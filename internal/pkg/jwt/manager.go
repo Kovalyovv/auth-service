@@ -1,6 +1,8 @@
 package jwt
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -15,7 +17,7 @@ func NewTokenManager(secretKey string) *TokenManager {
 	return &TokenManager{secretKey: secretKey}
 }
 
-func (m *TokenManager) GenerateToken(userID int64, duration time.Duration) (string, error) {
+func (m *TokenManager) GenerateAccessToken(userID int64, duration time.Duration) (string, error) {
 	claims := jwt.MapClaims{
 		"sub": userID,
 		"exp": time.Now().Add(duration).Unix(),
@@ -24,6 +26,14 @@ func (m *TokenManager) GenerateToken(userID int64, duration time.Duration) (stri
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(m.secretKey))
+}
+
+func (m *TokenManager) GenerateRefreshToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
 }
 
 func (m *TokenManager) ValidateToken(tokenStr string) (int64, error) {

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"time"
 
 	"github.com/Kovalyovv/auth-service/internal/domain"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -28,4 +29,24 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, 
 		return nil, err
 	}
 	return &u, nil
+}
+
+func (r *UserRepo) SaveRefreshToken(ctx context.Context, userID int64, token string, expiresAt time.Time) error {
+	query := `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`
+	_, err := r.pool.Exec(ctx, query, userID, token, expiresAt)
+	return err
+}
+
+func (r *UserRepo) GetRefreshToken(ctx context.Context, token string) (int64, time.Time, error) {
+	var userID int64
+	var expiresAt time.Time
+	query := `SELECT user_id, expires_at FROM refresh_tokens WHERE token = $1`
+	err := r.pool.QueryRow(ctx, query, token).Scan(&userID, &expiresAt)
+	return userID, expiresAt, err
+}
+
+func (r *UserRepo) DeleteRefreshToken(ctx context.Context, token string) error {
+	query := `DELETE FROM refresh_tokens WHERE token = $1`
+	_, err := r.pool.Exec(ctx, query, token)
+	return err
 }
