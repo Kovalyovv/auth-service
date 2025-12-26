@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/Kovalyovv/auth-service/internal/domain"
@@ -14,8 +13,7 @@ type UserRepository interface {
 	Create(ctx context.Context, user *domain.User) error
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
 	SaveRefreshToken(ctx context.Context, userID int64, token string, expiresAt time.Time) error
-	GetRefreshToken(ctx context.Context, token string) (int64, time.Time, error)
-	DeleteRefreshToken(ctx context.Context, token string) error
+	ConsumeRefreshToken(ctx context.Context, token string) (int64, error)
 }
 
 type AuthUseCase struct {
@@ -43,11 +41,11 @@ func (uc *AuthUseCase) Register(ctx context.Context, username, email, password s
 func (uc *AuthUseCase) Login(ctx context.Context, email, password string) (domain.TokenPair, error) {
 	user, err := uc.repo.GetByEmail(ctx, email)
 	if err != nil {
-		return domain.TokenPair{}, errors.New("invalid credentials")
+		return domain.TokenPair{}, domain.ErrInvalidCredentials
 	}
 
 	if !hash.CheckPasswordHash(password, user.PasswordHash) {
-		return domain.TokenPair{}, errors.New("invalid credentials")
+		return domain.TokenPair{}, domain.ErrInvalidCredentials
 	}
 
 	return uc.generatePair(ctx, user.ID)
@@ -58,17 +56,10 @@ func (uc *AuthUseCase) Verify(token string) (int64, error) {
 }
 
 func (uc *AuthUseCase) Refresh(ctx context.Context, refreshToken string) (domain.TokenPair, error) {
-	userID, expiresAt, err := uc.repo.GetRefreshToken(ctx, refreshToken)
+	userID, err := uc.repo.ConsumeRefreshToken(ctx, refreshToken)
 	if err != nil {
-		return domain.TokenPair{}, errors.New("invalid refresh token")
+		return domain.TokenPair{}, err
 	}
-
-	if time.Now().After(expiresAt) {
-		_ = uc.repo.DeleteRefreshToken(ctx, refreshToken)
-		return domain.TokenPair{}, errors.New("refresh token expired")
-	}
-
-	_ = uc.repo.DeleteRefreshToken(ctx, refreshToken)
 
 	return uc.generatePair(ctx, userID)
 }

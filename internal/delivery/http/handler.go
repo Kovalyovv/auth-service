@@ -1,17 +1,24 @@
 package http
 
 import (
+	"context"
 	"net/http"
 
-	"github.com/Kovalyovv/auth-service/internal/usecase"
+	"github.com/Kovalyovv/auth-service/internal/domain"
 	"github.com/gin-gonic/gin"
 )
 
-type AuthHandler struct {
-	uc *usecase.AuthUseCase
+type AuthUseCase interface {
+	Register(ctx context.Context, username, email, password string) error
+	Login(ctx context.Context, email, password string) (domain.TokenPair, error)
+	Refresh(ctx context.Context, refreshToken string) (domain.TokenPair, error)
 }
 
-func NewAuthHandler(uc *usecase.AuthUseCase) *AuthHandler {
+type AuthHandler struct {
+	uc AuthUseCase
+}
+
+func NewAuthHandler(uc AuthUseCase) *AuthHandler {
 	return &AuthHandler{uc: uc}
 }
 
@@ -52,13 +59,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := h.uc.Login(c.Request.Context(), req.Email, req.Password)
+	pair, err := h.uc.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, pair)
 }
 
 func (h *AuthHandler) Refresh(c *gin.Context) {

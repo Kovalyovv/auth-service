@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"log"
+	"errors"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -22,11 +23,15 @@ import (
 )
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	cfg := config.NewFromEnv()
 
 	pool, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
 	if err != nil {
-		log.Fatalf("failed to connect to db: %v", err)
+		slog.Error("failed to connect to db", "error", err)
+		os.Exit(1)
 	}
 	defer pool.Close()
 
@@ -39,13 +44,14 @@ func main() {
 
 	lis, err := net.Listen("tcp", ":"+cfg.GRPCPort)
 	if err != nil {
-		log.Fatalf("failed to listen grpc: %v", err)
+		slog.Error("failed to listen grpc", "error", err)
+		os.Exit(1)
 	}
 
 	go func() {
-		log.Printf("gRPC server listening on %s", cfg.GRPCPort)
+		slog.Info("gRPC server listening", "port", cfg.GRPCPort)
 		if err := grpcSrv.Serve(lis); err != nil {
-			log.Fatalf("grpc serve err: %v", err)
+			slog.Error("grpc serve err", "error", err)
 		}
 	}()
 
@@ -53,9 +59,9 @@ func main() {
 	httpSrv := deliveryHTTP.NewServer(cfg, authHandler)
 
 	go func() {
-		log.Printf("HTTP server listening on %s", cfg.HTTPPort)
-		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("http listen err: %v", err)
+		slog.Info("HTTP server listening on", "port", cfg.HTTPPort)
+		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("http listen err", "error", err)
 		}
 	}()
 

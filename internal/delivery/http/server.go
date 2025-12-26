@@ -15,6 +15,7 @@ func NewServer(cfg *config.Config, handler *AuthHandler) *http.Server {
 	{
 		auth.POST("/register", handler.Register)
 		auth.POST("/login", handler.Login)
+		auth.POST("/refresh", handler.Refresh)
 	}
 
 	return &http.Server{
