@@ -28,6 +28,15 @@ func main() {
 
 	cfg := config.NewFromEnv()
 
+	if cfg.JWTSecret == "" {
+		slog.Error("missing critical configuration: JWT_SECRET must be set")
+		os.Exit(1)
+	}
+	if cfg.DatabaseURL == "" {
+		slog.Error("missing critical configuration: DATABASE_URL must be set")
+		os.Exit(1)
+	}
+
 	pool, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
 	if err != nil {
 		slog.Error("failed to connect to db", "error", err)
@@ -37,8 +46,7 @@ func main() {
 
 	userRepo := postgres.NewUserRepo(pool)
 	tokenManager := jwt.NewTokenManager(cfg.JWTSecret)
-	authUC := usecase.NewAuthUseCase(userRepo, tokenManager)
-
+	authUC := usecase.NewAuthUseCase(userRepo, tokenManager, cfg.AccessTokenTTL, cfg.RefreshTokenTTL)
 	grpcSrv := grpc.NewServer()
 	pb.RegisterAuthServiceServer(grpcSrv, deliveryGRPC.NewServer(authUC))
 

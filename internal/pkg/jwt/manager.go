@@ -3,9 +3,11 @@ package jwt
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/Kovalyovv/auth-service/internal/domain"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -45,7 +47,10 @@ func (m *TokenManager) ValidateToken(tokenStr string) (int64, error) {
 	})
 
 	if err != nil {
-		return 0, err
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return 0, domain.ErrTokenExpired
+		}
+		return 0, fmt.Errorf("invalid token: %w", err)
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {

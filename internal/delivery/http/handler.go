@@ -2,10 +2,12 @@ package http
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/Kovalyovv/auth-service/internal/domain"
 	"github.com/gin-gonic/gin"
+	"log/slog"
 )
 
 type AuthUseCase interface {
@@ -36,16 +38,34 @@ type loginReq struct {
 type refreshReq struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
+type apiError struct {
+	Error string `json:"error"`
+}
+
+func (h *AuthHandler) handleError(c *gin.Context, err error) {
+	slog.Error("http handler error", "path", c.Request.URL.Path, "error", err)
+
+	switch {
+	case errors.Is(err, domain.ErrInvalidCredentials):
+		c.AbortWithStatusJSON(http.StatusUnauthorized, apiError{Error: err.Error()})
+	case errors.Is(err, domain.ErrRefreshTokenNotFound):
+		c.AbortWithStatusJSON(http.StatusUnauthorized, apiError{Error: err.Error()})
+	case errors.Is(err, domain.ErrEmailExists):
+		c.AbortWithStatusJSON(http.StatusConflict, apiError{Error: err.Error()})
+	default:
+		c.AbortWithStatusJSON(http.StatusInternalServerError, apiError{Error: "an internal server error occurred"})
+	}
+}
 
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req registerReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, apiError{Error: "invalid request body"})
 		return
 	}
 
 	if err := h.uc.Register(c.Request.Context(), req.Username, req.Email, req.Password); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		h.handleError(c, err)
 		return
 	}
 
@@ -55,13 +75,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, apiError{Error: "invalid request body"})
 		return
 	}
 
 	pair, err := h.uc.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		h.handleError(c, err)
 		return
 	}
 
@@ -71,13 +91,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req refreshReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, apiError{Error: "invalid request body"})
 		return
 	}
 
 	pair, err := h.uc.Refresh(c.Request.Context(), req.RefreshToken)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		h.handleError(c, err)
 		return
 	}
 

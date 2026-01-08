@@ -42,8 +42,7 @@ func (m *MockUserRepository) ConsumeRefreshToken(ctx context.Context, token stri
 func TestAuthUseCase_Login(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	tokenManager := jwt.NewTokenManager("secret")
-	uc := NewAuthUseCase(mockRepo, tokenManager)
-
+	uc := NewAuthUseCase(mockRepo, tokenManager, 15*time.Minute, 7*24*time.Hour)
 	password := "password123"
 	hashedPassword, _ := hash.HashPassword(password)
 
@@ -96,7 +95,7 @@ func TestAuthUseCase_Login(t *testing.T) {
 func TestAuthUseCase_Refresh(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	tokenManager := jwt.NewTokenManager("secret")
-	uc := NewAuthUseCase(mockRepo, tokenManager)
+	uc := NewAuthUseCase(mockRepo, tokenManager, 15*time.Minute, 7*24*time.Hour)
 
 	t.Run("Given valid refresh token", func(t *testing.T) {
 		ctx := context.Background()

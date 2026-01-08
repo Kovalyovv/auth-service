@@ -17,12 +17,19 @@ type UserRepository interface {
 }
 
 type AuthUseCase struct {
-	repo         UserRepository
-	tokenManager *jwt.TokenManager
+	repo            UserRepository
+	tokenManager    *jwt.TokenManager
+	accessTokenTTL  time.Duration
+	refreshTokenTTL time.Duration
 }
 
-func NewAuthUseCase(repo UserRepository, tm *jwt.TokenManager) *AuthUseCase {
-	return &AuthUseCase{repo: repo, tokenManager: tm}
+func NewAuthUseCase(repo UserRepository, tm *jwt.TokenManager, accessTTL, refreshTTL time.Duration) *AuthUseCase {
+	return &AuthUseCase{
+		repo:            repo,
+		tokenManager:    tm,
+		accessTokenTTL:  accessTTL,
+		refreshTokenTTL: refreshTTL,
+	}
 }
 
 func (uc *AuthUseCase) Register(ctx context.Context, username, email, password string) error {
@@ -65,7 +72,7 @@ func (uc *AuthUseCase) Refresh(ctx context.Context, refreshToken string) (domain
 }
 
 func (uc *AuthUseCase) generatePair(ctx context.Context, userID int64) (domain.TokenPair, error) {
-	accessToken, err := uc.tokenManager.GenerateAccessToken(userID, time.Minute*15)
+	accessToken, err := uc.tokenManager.GenerateAccessToken(userID, uc.accessTokenTTL)
 	if err != nil {
 		return domain.TokenPair{}, err
 	}
@@ -75,7 +82,7 @@ func (uc *AuthUseCase) generatePair(ctx context.Context, userID int64) (domain.T
 		return domain.TokenPair{}, err
 	}
 
-	expiresAt := time.Now().Add(time.Hour * 24 * 7)
+	expiresAt := time.Now().Add(uc.refreshTokenTTL)
 	err = uc.repo.SaveRefreshToken(ctx, userID, refreshToken, expiresAt)
 	if err != nil {
 		return domain.TokenPair{}, err
