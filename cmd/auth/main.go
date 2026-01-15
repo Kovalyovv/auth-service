@@ -17,12 +17,30 @@ import (
 	"github.com/Kovalyovv/auth-service/internal/pkg/jwt"
 	"github.com/Kovalyovv/auth-service/internal/repository/postgres"
 	"github.com/Kovalyovv/auth-service/internal/usecase"
+	"github.com/Kovalyovv/auth-service/pkg/observability"
 	"github.com/Kovalyovv/auth-service/pkg/pb"
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )
 
+const serviceName = "auth-service"
+
 func main() {
+	tp, err := observability.InitTracer(serviceName, "localhost:4317")
+	if err != nil {
+		slog.Error("failed to initialize tracer", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		if err := tp.Shutdown(context.Background()); err != nil {
+			slog.Error("failed to shutdown tracer", "error", err)
+		}
+	}()
+
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
@@ -47,7 +65,9 @@ func main() {
 	userRepo := postgres.NewUserRepo(pool)
 	tokenManager := jwt.NewTokenManager(cfg.JWTSecret)
 	authUC := usecase.NewAuthUseCase(userRepo, tokenManager, cfg.AccessTokenTTL, cfg.RefreshTokenTTL)
-	grpcSrv := grpc.NewServer()
+	grpcSrv := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+	)
 	pb.RegisterAuthServiceServer(grpcSrv, deliveryGRPC.NewServer(authUC))
 
 	lis, err := net.Listen("tcp", ":"+cfg.GRPCPort)
@@ -63,8 +83,18 @@ func main() {
 		}
 	}()
 
-	authHandler := deliveryHTTP.NewAuthHandler(authUC)
-	httpSrv := deliveryHTTP.NewServer(cfg, authHandler)
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.Use(otelgin.Middleware(serviceName))
+
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	handler := deliveryHTTP.NewAuthHandler(authUC)
+	deliveryHTTP.SetupRoutes(router, handler)
+	httpSrv := &http.Server{
+		Addr:    ":" + cfg.HTTPPort,
+		Handler: router,
+	}
 
 	go func() {
 		slog.Info("HTTP server listening on", "port", cfg.HTTPPort)
