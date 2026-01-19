@@ -30,7 +30,7 @@ import (
 const serviceName = "auth-service"
 
 func main() {
-	tp, err := observability.InitTracer(serviceName, "localhost:4317")
+	tp, err := observability.InitTracer(serviceName, "jaeger:4317")
 	if err != nil {
 		slog.Error("failed to initialize tracer", "error", err)
 		os.Exit(1)

@@ -10,7 +10,7 @@ import (
 func SetupRoutes(router *gin.Engine, handler *AuthHandler) {
 	// CORS middleware can be applied here or in main.go. Let's keep it here.
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:9000", "http://127.0.0.1:9000", "http://[::1]:9000", "http://0.0.0.0:9000"},
+		AllowOrigins:     []string{"http://localhost:9000", "http://127.0.0.1:9000", "http://[::1]:9000", "http://0.0.0.0:9000", "http://0.0.0.0:9002", "http://[::1]:9002", "http://localhost:9002", "http://127.0.0.1:9002"},
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
