@@ -25,6 +25,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 const serviceName = "auth-service"
@@ -65,8 +66,20 @@ func main() {
 	userRepo := postgres.NewUserRepo(pool)
 	tokenManager := jwt.NewTokenManager(cfg.JWTSecret)
 	authUC := usecase.NewAuthUseCase(userRepo, tokenManager, cfg.AccessTokenTTL, cfg.RefreshTokenTTL)
+
+	var kaep = keepalive.EnforcementPolicy{
+		MinTime:             5 * time.Second,
+		PermitWithoutStream: true,
+	}
+	var kasp = keepalive.ServerParameters{
+		Time:    15 * time.Second,
+		Timeout: 5 * time.Second,
+	}
+
 	grpcSrv := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		grpc.KeepaliveEnforcementPolicy(kaep),
+		grpc.KeepaliveParams(kasp),
 	)
 	pb.RegisterAuthServiceServer(grpcSrv, deliveryGRPC.NewServer(authUC))
 
